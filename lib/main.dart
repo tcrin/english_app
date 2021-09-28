@@ -1,10 +1,12 @@
+import 'package:english_app/packages/quote/quote.dart';
 import 'package:english_app/pages/landing_page.dart';
-import 'package:english_app/values/app_fonts.dart';
-import 'package:english_app/values/app_styles.dart';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Quotes().getAll();
   runApp(MyApp());
 }
 
@@ -24,5 +26,3 @@ class MyApp extends StatelessWidget {
     );
   }
 }
-
-

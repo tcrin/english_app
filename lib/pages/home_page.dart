@@ -1,7 +1,14 @@
+import 'dart:collection';
+import 'dart:math';
+
+import 'package:english_app/models/english_today.dart';
+import 'package:english_app/packages/quote/quote.dart';
+import 'package:english_app/packages/quote/quote_model.dart';
 import 'package:english_app/values/app_assets.dart';
 import 'package:english_app/values/app_colors.dart';
 import 'package:english_app/values/app_fonts.dart';
 import 'package:english_app/values/app_styles.dart';
+import 'package:english_words/english_words.dart';
 import 'package:flutter/material.dart';
 
 class HomePage extends StatefulWidget {
@@ -13,18 +20,68 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   int _currentIndex = 0; //Trả về vị trí hiện tại của card
-  PageController _pageController = PageController();
+  late PageController _pageController;
+
+  List<EnglishToday> words = [];
+
+  String quote = Quotes().getRandom().content!;
+  //Hamf random noun
+  List<int> fixedListRandom({int len = 1, int max = 120, int min = 1}) {
+    if (len > max || len < min) {
+      return [];
+    }
+    List<int> newList = [];
+    Random random = Random();
+    int count = 1;
+    while (count <= len) {
+      int val = random.nextInt(max);
+      if (newList.contains(val)) {
+        continue;
+      } else {
+        newList.add(val);
+        count++;
+      }
+    }
+
+    return newList;
+  }
+
+  getEnglishToday() {
+    List<String> newList = [];
+    List<int> rans = fixedListRandom(len: 5, max: nouns.length);
+    rans.forEach((index) {
+      newList.add(nouns[index]);
+    });
+
+    words = newList
+        .map((e) => getQuote(e))
+        .toList();
+  }
+
+  EnglishToday getQuote(String noun) {
+    Quote? quote;
+    quote = Quotes().getByNoun(noun);
+    return EnglishToday(
+        noun: noun,
+        quote: quote?.content,
+        id: quote?.id,
+
+    );
+  }
 
   @override
   void initState() {
     _pageController = PageController(viewportFraction: 0.9);
+    getEnglishToday();
     super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
     //Lấy Size màn hình (Chia tỉ lệ màn hình cho dễ)
-    Size size = MediaQuery.of(context).size;
+    Size size = MediaQuery
+        .of(context)
+        .size;
     return Scaffold(
       backgroundColor: AppColors.secondColor,
       appBar: AppBar(
@@ -34,7 +91,7 @@ class _HomePageState extends State<HomePage> {
         title: Text(
           'English today',
           style:
-              AppStyles.h3.copyWith(color: AppColors.textColor, fontSize: 36),
+          AppStyles.h3.copyWith(color: AppColors.textColor, fontSize: 36),
         ),
         leading: InkWell(
           onTap: () {},
@@ -52,7 +109,7 @@ class _HomePageState extends State<HomePage> {
                 //padding: EdgeInsets.all(16),
                 alignment: Alignment.centerLeft,
                 child: Text(
-                  '"It is amazing how complete is the delusion that beauty is goodness."',
+                  '"$quote"',
                   style: AppStyles.h5.copyWith(
                     fontSize: 12,
                     color: AppColors.textColor,
@@ -67,8 +124,21 @@ class _HomePageState extends State<HomePage> {
                     _currentIndex = index;
                   });
                 },
-                itemCount: 5,
+                itemCount: words.length,
                 itemBuilder: (context, index) {
+                  String firstLetter =
+                  words[index].noun != null ? words[index].noun! : '';
+                  firstLetter = firstLetter.substring(0, 1);
+
+                  String leftLetter = words[index].noun != null ? words[index]
+                      .noun! : '';
+
+                  leftLetter = leftLetter.substring(1, leftLetter.length);
+
+                  String quoteDefault =
+                      "Think of all the beauty still left arround you and be happy";
+                  String quote = words[index].quote != null ? words[index]
+                      .quote! : quoteDefault;
                   return Padding(
                     padding: const EdgeInsets.all(4.0),
                     child: Container(
@@ -77,7 +147,7 @@ class _HomePageState extends State<HomePage> {
                         boxShadow: [
                           BoxShadow(
                             color: Colors.black26,
-                            offset: Offset(3,6),
+                            offset: Offset(3, 6),
                             blurRadius: 6,
                           )
                         ],
@@ -94,10 +164,10 @@ class _HomePageState extends State<HomePage> {
                           ),
                           RichText(
                             text: TextSpan(
-                                text: 'B',
+                                text: firstLetter,
                                 children: [
                                   TextSpan(
-                                      text: 'eautiful',
+                                      text: leftLetter,
                                       style: TextStyle(
                                           fontFamily: AppFonts.sen,
                                           fontSize: 62,
@@ -132,7 +202,7 @@ class _HomePageState extends State<HomePage> {
                             child: Padding(
                               padding: const EdgeInsets.only(top: 24),
                               child: Text(
-                                '"Think of all the beauty still left arround you and be happy."',
+                                '"$quote"',
                                 style: AppStyles.h4.copyWith(
                                   letterSpacing: 1, //Dãn chữ
                                   color: AppColors.textColor,
@@ -175,7 +245,9 @@ class _HomePageState extends State<HomePage> {
       floatingActionButton: FloatingActionButton(
         backgroundColor: AppColors.primaryColor,
         onPressed: () {
-          print('Nhan');
+          setState(() {
+            getEnglishToday();
+          });
         },
         child: Image.asset(AppAssets.exchange),
       ),
