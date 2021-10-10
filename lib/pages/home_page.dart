@@ -1,15 +1,20 @@
 import 'dart:collection';
 import 'dart:math';
 
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:english_app/models/english_today.dart';
 import 'package:english_app/packages/quote/quote.dart';
 import 'package:english_app/packages/quote/quote_model.dart';
+import 'package:english_app/pages/control_page.dart';
 import 'package:english_app/values/app_assets.dart';
 import 'package:english_app/values/app_colors.dart';
 import 'package:english_app/values/app_fonts.dart';
 import 'package:english_app/values/app_styles.dart';
+import 'package:english_app/values/share_keys.dart';
+import 'package:english_app/widgets/app_button.dart';
 import 'package:english_words/english_words.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
@@ -25,6 +30,7 @@ class _HomePageState extends State<HomePage> {
   List<EnglishToday> words = [];
 
   String quote = Quotes().getRandom().content!;
+
   //Hamf random noun
   List<int> fixedListRandom({int len = 1, int max = 120, int min = 1}) {
     if (len > max || len < min) {
@@ -46,43 +52,45 @@ class _HomePageState extends State<HomePage> {
     return newList;
   }
 
-  getEnglishToday() {
+  getEnglishToday() async{
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    int len=prefs.getInt(ShareKeys.counter)??5;
     List<String> newList = [];
-    List<int> rans = fixedListRandom(len: 5, max: nouns.length);
+    List<int> rans = fixedListRandom(len: len, max: nouns.length);
     rans.forEach((index) {
       newList.add(nouns[index]);
     });
 
-    words = newList
-        .map((e) => getQuote(e))
-        .toList();
+    setState(() {
+      words = newList.map((e) => getQuote(e)).toList();
+    });
   }
 
   EnglishToday getQuote(String noun) {
     Quote? quote;
     quote = Quotes().getByNoun(noun);
     return EnglishToday(
-        noun: noun,
-        quote: quote?.content,
-        id: quote?.id,
-
+      noun: noun,
+      quote: quote?.content,
+      id: quote?.id,
     );
   }
 
   @override
   void initState() {
     _pageController = PageController(viewportFraction: 0.9);
-    getEnglishToday();
     super.initState();
+    getEnglishToday();
   }
+
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
   @override
   Widget build(BuildContext context) {
     //Lấy Size màn hình (Chia tỉ lệ màn hình cho dễ)
-    Size size = MediaQuery
-        .of(context)
-        .size;
+    Size size = MediaQuery.of(context).size;
     return Scaffold(
+      key: _scaffoldKey,
       backgroundColor: AppColors.secondColor,
       appBar: AppBar(
         backgroundColor: AppColors.secondColor,
@@ -91,10 +99,12 @@ class _HomePageState extends State<HomePage> {
         title: Text(
           'English today',
           style:
-          AppStyles.h3.copyWith(color: AppColors.textColor, fontSize: 36),
+              AppStyles.h3.copyWith(color: AppColors.textColor, fontSize: 36),
         ),
         leading: InkWell(
-          onTap: () {},
+          onTap: () {
+            _scaffoldKey.currentState?.openDrawer();
+          },
           child: Image.asset(AppAssets.menu),
         ),
       ),
@@ -127,18 +137,19 @@ class _HomePageState extends State<HomePage> {
                 itemCount: words.length,
                 itemBuilder: (context, index) {
                   String firstLetter =
-                  words[index].noun != null ? words[index].noun! : '';
+                      words[index].noun != null ? words[index].noun! : '';
                   firstLetter = firstLetter.substring(0, 1);
 
-                  String leftLetter = words[index].noun != null ? words[index]
-                      .noun! : '';
+                  String leftLetter =
+                      words[index].noun != null ? words[index].noun! : '';
 
                   leftLetter = leftLetter.substring(1, leftLetter.length);
 
                   String quoteDefault =
                       "Think of all the beauty still left arround you and be happy";
-                  String quote = words[index].quote != null ? words[index]
-                      .quote! : quoteDefault;
+                  String quote = words[index].quote != null
+                      ? words[index].quote!
+                      : quoteDefault;
                   return Padding(
                     padding: const EdgeInsets.all(4.0),
                     child: Container(
@@ -201,8 +212,9 @@ class _HomePageState extends State<HomePage> {
                             padding: const EdgeInsets.symmetric(horizontal: 10),
                             child: Padding(
                               padding: const EdgeInsets.only(top: 24),
-                              child: Text(
+                              child: AutoSizeText(
                                 '"$quote"',
+                                maxFontSize: 26,
                                 style: AppStyles.h4.copyWith(
                                   letterSpacing: 1, //Dãn chữ
                                   color: AppColors.textColor,
@@ -250,6 +262,40 @@ class _HomePageState extends State<HomePage> {
           });
         },
         child: Image.asset(AppAssets.exchange),
+      ),
+      drawer: Drawer(
+        child: Container(
+          color: AppColors.lightBlue,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Padding(
+                padding: const EdgeInsets.only(top: 24, left: 16),
+                child: Text('Your mind',
+                    style: AppStyles.h3.copyWith(
+                      color: AppColors.textColor,
+                    )),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 24),
+                child: AppButton(
+                    label: 'Favorites',
+                    onTap: () {
+                      print('Favorites');
+                    }),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 24),
+                child: AppButton(
+                    label: 'Your control',
+                    onTap: () {
+                      Navigator.push(context,
+                          MaterialPageRoute(builder: (_) => ControlPage()));
+                    }),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
