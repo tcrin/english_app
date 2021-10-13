@@ -5,6 +5,7 @@ import 'package:auto_size_text/auto_size_text.dart';
 import 'package:english_app/models/english_today.dart';
 import 'package:english_app/packages/quote/quote.dart';
 import 'package:english_app/packages/quote/quote_model.dart';
+import 'package:english_app/pages/all_words_page.dart';
 import 'package:english_app/pages/control_page.dart';
 import 'package:english_app/values/app_assets.dart';
 import 'package:english_app/values/app_colors.dart';
@@ -52,9 +53,9 @@ class _HomePageState extends State<HomePage> {
     return newList;
   }
 
-  getEnglishToday() async{
+  getEnglishToday() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    int len=prefs.getInt(ShareKeys.counter)??5;
+    int len = prefs.getInt(ShareKeys.counter) ?? 5;
     List<String> newList = [];
     List<int> rans = fixedListRandom(len: len, max: nouns.length);
     rans.forEach((index) {
@@ -152,77 +153,87 @@ class _HomePageState extends State<HomePage> {
                       : quoteDefault;
                   return Padding(
                     padding: const EdgeInsets.all(4.0),
-                    child: Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black26,
-                            offset: Offset(3, 6),
-                            blurRadius: 6,
-                          )
-                        ],
-                        color: AppColors.primaryColor,
+                    child: Material(
+                      borderRadius: BorderRadius.all(Radius.circular(24)),
+                      color: AppColors.primaryColor,
+                      elevation: 4,
+                      child: InkWell(
                         borderRadius: BorderRadius.all(Radius.circular(24)),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Container(
-                            child: Image.asset(AppAssets.heart),
-                            //  padding: const EdgeInsets.fromLTRB(0, 16, 16, 16),
-                            alignment: Alignment.centerRight,
-                          ),
-                          RichText(
-                            text: TextSpan(
-                                text: firstLetter,
-                                children: [
-                                  TextSpan(
-                                      text: leftLetter,
-                                      style: TextStyle(
-                                          fontFamily: AppFonts.sen,
-                                          fontSize: 62,
-                                          fontWeight: FontWeight.bold,
-                                          shadows: [
-                                            BoxShadow(
-                                              color: Colors.black38,
-                                              offset: Offset(3, 6), //Đổ bóng
-                                              blurRadius: 10, //Làm mờ, blur
-                                            )
-                                          ]))
-                                ],
-                                style: TextStyle(
-                                    fontFamily: AppFonts.sen,
-                                    fontSize: 89,
-                                    fontWeight: FontWeight.bold,
-                                    shadows: [
-                                      BoxShadow(
-                                        color: Colors.black38,
-                                        offset: Offset(3, 6), //Đổ bóng
-                                        blurRadius: 10, //Làm mờ, blur
-                                      )
-                                    ])),
-                            maxLines: 1, //Cho chữ nằm trên 1 dòng,
-                            overflow: TextOverflow
-                                .ellipsis, //Phần còn lại thành dấu ...
-                            textAlign: TextAlign.start,
-                          ),
-                          Container(
-                            //padding: const EdgeInsets.all(16),
-                            padding: const EdgeInsets.symmetric(horizontal: 10),
-                            child: Padding(
-                              padding: const EdgeInsets.only(top: 24),
-                              child: AutoSizeText(
-                                '"$quote"',
-                                maxFontSize: 26,
-                                style: AppStyles.h4.copyWith(
-                                  letterSpacing: 1, //Dãn chữ
-                                  color: AppColors.textColor,
+                        splashColor: Colors.black26,
+                        onDoubleTap: () {
+                          setState(() {
+                            words[index].isFavorite = !words[index].isFavorite;
+                          });
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.all(16),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Container(
+                                child: Image.asset(
+                                  AppAssets.heart,
+                                  color: words[index].isFavorite
+                                      ? Colors.red
+                                      : Colors.white,
                                 ),
+                                //  padding: const EdgeInsets.fromLTRB(0, 16, 16, 16),
+                                alignment: Alignment.centerRight,
                               ),
-                            ),
-                          )
-                        ],
+                              RichText(
+                                text: TextSpan(
+                                    text: firstLetter,
+                                    children: [
+                                      TextSpan(
+                                          text: leftLetter,
+                                          style: TextStyle(
+                                              fontFamily: AppFonts.sen,
+                                              fontSize: 62,
+                                              fontWeight: FontWeight.bold,
+                                              shadows: [
+                                                BoxShadow(
+                                                  color: Colors.black38,
+                                                  offset: Offset(3, 6),
+                                                  //Đổ bóng
+                                                  blurRadius: 10, //Làm mờ, blur
+                                                )
+                                              ]))
+                                    ],
+                                    style: TextStyle(
+                                        fontFamily: AppFonts.sen,
+                                        fontSize: 89,
+                                        fontWeight: FontWeight.bold,
+                                        shadows: [
+                                          BoxShadow(
+                                            color: Colors.black38,
+                                            offset: Offset(3, 6), //Đổ bóng
+                                            blurRadius: 10, //Làm mờ, blur
+                                          )
+                                        ])),
+                                maxLines: 1, //Cho chữ nằm trên 1 dòng,
+                                overflow: TextOverflow
+                                    .ellipsis, //Phần còn lại thành dấu ...
+                                textAlign: TextAlign.start,
+                              ),
+                              Container(
+                                //padding: const EdgeInsets.all(16),
+                                padding:
+                                    const EdgeInsets.symmetric(horizontal: 10),
+                                child: Padding(
+                                  padding: const EdgeInsets.only(top: 24),
+                                  child: AutoSizeText(
+                                    '"$quote"',
+                                    maxFontSize: 26,
+                                    style: AppStyles.h4.copyWith(
+                                      letterSpacing: 1, //Dãn chữ
+                                      color: AppColors.textColor,
+                                    ),
+                                  ),
+                                ),
+                              )
+                            ],
+                          ),
+                        ),
                       ),
                     ),
                   );
@@ -231,26 +242,28 @@ class _HomePageState extends State<HomePage> {
             ),
 
             //indicator
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24),
-              child: SizedBox(
-                height: size.height * (1 / 13),
-                child: Container(
-                  height: 12,
-                  alignment: Alignment.center,
-                  margin: const EdgeInsets.symmetric(vertical: 24),
-                  child: ListView.builder(
-                    physics: NeverScrollableScrollPhysics(),
-                    //Không cho listview cuộn
-                    scrollDirection: Axis.horizontal,
-                    itemCount: 5,
-                    itemBuilder: (context, index) {
-                      return buildIndicator(index == _currentIndex, size);
-                    },
-                  ),
-                ),
-              ),
-            )
+            _currentIndex >= 5
+                ? buildShowMore()
+                : Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 24),
+                    child: SizedBox(
+                      height: size.height * (1 / 13),
+                      child: Container(
+                        height: 12,
+                        alignment: Alignment.center,
+                        margin: const EdgeInsets.symmetric(vertical: 24),
+                        child: ListView.builder(
+                          physics: NeverScrollableScrollPhysics(),
+                          //Không cho listview cuộn
+                          scrollDirection: Axis.horizontal,
+                          itemCount: 5,
+                          itemBuilder: (context, index) {
+                            return buildIndicator(index == _currentIndex, size);
+                          },
+                        ),
+                      ),
+                    ),
+                  )
           ],
         ),
       ),
@@ -301,7 +314,10 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget buildIndicator(bool isActive, Size size) {
-    return Container(
+    return AnimatedContainer(
+      duration: Duration(milliseconds: 300),
+      //Hieeuj ung
+      curve: Curves.bounceOut,
       //height: 12,
       margin: const EdgeInsets.symmetric(horizontal: 16),
       width: isActive ? size.width * (1 / 5) : 24,
@@ -312,6 +328,35 @@ class _HomePageState extends State<HomePage> {
             BoxShadow(
                 color: Colors.black38, offset: Offset(2, 3), blurRadius: 3)
           ]),
+    );
+  }
+
+  Widget buildShowMore() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+      alignment: Alignment.centerLeft,
+      child: Material(
+        borderRadius: BorderRadius.all(Radius.circular(24)),
+        color: AppColors.primaryColor,
+        elevation: 4,
+        child: InkWell(
+          onTap: () {
+            Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (_) => AllWordsPage(words: this.words)));
+          },
+          splashColor: Colors.black38,
+          borderRadius: BorderRadius.all(Radius.circular(24)),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+            child: Text(
+              'Show more',
+              style: AppStyles.h5,
+            ),
+          ),
+        ),
+      ),
     );
   }
 }
